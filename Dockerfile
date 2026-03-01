@@ -18,4 +18,5 @@ COPY . /app/backend
 EXPOSE 8000
 #RUN python manage.py migrate
 #RUN python manage.py makemigrations
-CMD ["gunicorn","notesapp.wsgi:application","--bind","0.0.0.0:8000"]
+# CMD ["gunicorn","notesapp.wsgi:application","--bind","0.0.0.0:8000"]   remove comment only when you are not runing the docker-compose file, or you want to run only image
+
