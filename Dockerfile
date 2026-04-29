@@ -1,22 +1,36 @@
-FROM python:3.9
+# Use official Python image
+FROM python:3.11-slim
 
-WORKDIR /app/backend
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
-COPY requirements.txt /app/backend
-RUN apt-get update \
-    && apt-get upgrade -y \
-    && apt-get install -y gcc default-libmysqlclient-dev pkg-config \
+# Set work directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    default-libmysqlclient-dev \
+    pkg-config \
+    gcc \
     && rm -rf /var/lib/apt/lists/*
 
+# Install Python dependencies
+COPY requirements.txt /app/
+RUN pip install --upgrade pip && pip install -r requirements.txt
 
-# Install app dependencies
-RUN pip install mysqlclient
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy project files
+COPY . /app/
 
-COPY . /app/backend
+# Make staticfiles directory
+RUN mkdir -p /app/staticfiles
 
+# Collect static files
+RUN python manage.py collectstatic --noinput
+
+# Expose port
 EXPOSE 8000
-#RUN python manage.py migrate
-#RUN python manage.py makemigrations
-# CMD ["gunicorn","notesapp.wsgi:application","--bind","0.0.0.0:8000"]   remove comment only when you are not runing the docker-compose file, or you want to run only image
 
+# Run app with gunicorn
+CMD ["gunicorn", "notesapp.wsgi:application", "--bind", "0.0.0.0:8000"]
